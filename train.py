@@ -7,9 +7,22 @@ from src.models.model_factory import create_model
 from src.losses.losses import get_loss
 from src.trainers.trainer import Trainer
 
+import random
+import numpy as np
+
+def set_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
 def main(config_path):
     # Load config
     config = load_config(config_path)
+    
+    # Set seed
+    set_seed(config['training'].get('seed', 42))
     
     # Device
     device_type = config['training']['device']

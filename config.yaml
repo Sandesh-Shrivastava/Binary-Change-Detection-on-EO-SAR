@@ -7,6 +7,7 @@ data:
   batch_size: 8
   img_size: 512
   val_scenes: ["scene_07"] # Scene-aware split
+  augmentations: "HorizontalFlip, VerticalFlip, RandomRotate90, RandomBrightnessContrast"
 
 model:
   architecture: "unet"
@@ -17,7 +18,9 @@ model:
 training:
   epochs: 50
   lr: 0.0001
+  optimizer: "AdamW"
   loss_type: "hybrid"
+  seed: 42
   device: "mps" # Use 'mps' for Apple Silicon, 'cuda' for NVIDIA, 'cpu' otherwise
 
 output:
