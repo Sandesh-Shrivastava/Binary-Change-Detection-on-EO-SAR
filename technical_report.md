@@ -81,5 +81,28 @@ Given the difficulty of labeling change detection data, I would explore **Consis
 ## 6. Conclusion
 This project successfully delivers a production-grade baseline for EO-SAR change detection. The **key takeaway** is that multi-modal fusion is not just an "extra feature" but a necessity for resilient disaster monitoring. While our current model has limitations in **Precision** due to SAR noise, the high **Recall (67.4%)** ensures that it serves its primary purpose: quickly and accurately identifying areas of building damage to save lives and resources during an emergency.
 
+## 7. Time and Resource Log
+
+### 7.1 Total Time Spent (Total: ~5.5 Hours)
+- **Data Exploration & Analysis**: 45 mins (Analyzing distributions and imbalance).
+- **Literature Reading & Research**: 30 mins (Reviewing fusion papers).
+- **Implementation**: 2 hours (Building the modular codebase).
+- **Training & Tuning**: 1.5 hours (Iterating on class weights).
+- **Evaluation**: 20 mins (Generating results).
+- **Report Writing**: 45 mins (Technical documentation).
+
+### 7.2 Machine Specifications
+- **Type**: Local (MacBook Air)
+- **GPU**: Integrated Apple M3 (8-core GPU)
+- **VRAM**: 16 GB Unified Memory (Shared)
+- **Number of GPUs**: 1
+
+### 7.3 Training Performance
+- **Approx. Training Time per Epoch**: ~5 mins 30s
+- **Total Wall-Clock Training Time**: ~1.5 hours (final optimized session)
+
+### 7.4 Resource & Time Constraints
+The primary constraint was conducting training on a local laptop rather than a cloud-based GPU instance. This limited the experimental batch size (set to 8) and precluded a 100-epoch hyperparameter search. Consequently, the project was optimized for **Research Agility**, focusing on finding a high-recall loss function quickly rather than exhaustive architecture searches.
+
 ---
 *Developed for the GalaxEye AI Research Internship Assignment.*
