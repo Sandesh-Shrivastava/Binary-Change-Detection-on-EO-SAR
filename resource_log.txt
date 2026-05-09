@@ -1,0 +1,24 @@
+# ⏱️ Time and Resource Log
+
+### 1. Time Spent (Total: ~5.5 Hours)
+- **Data Exploration & Analysis**: 45 mins (Analyzing EO-SAR distribution, class imbalance, and label remapping).
+- **Literature Reading & Research**: 30 mins (Reviewing U-Net fusion strategies and SAR backscatter physics).
+- **Architecture Design & Implementation**: 2 hours (Building the modular pipeline, custom Dataset, and Model Factory).
+- **Training & Hyperparameter Tuning**: 1.5 hours (Iterating on class weights and normalization stats).
+- **Evaluation & Error Analysis**: 20 mins (Generating confusion matrices and visualizations).
+- **Technical Report Writing**: 45 mins (Documenting methodology and results).
+
+### 2. Machine Resources
+- **Model**: Apple M3 (Mac15,12)
+- **Memory**: 16 GB Unified Memory
+- **GPU**: Integrated Apple M3 GPU (Hardware acceleration via Metal Performance Shaders - MPS)
+- **Number of GPUs**: 1
+
+### 3. Training Performance
+- **Training Time per Epoch**: ~5 mins 30s
+- **Validation Time per Epoch**: ~30s
+- **Total Training Time**: ~1.5 hours (for the final optimized run session).
+
+### 4. Constraints
+- **Resource Constraints**: Training was conducted locally on a laptop. This limited the batch size and the number of experiments (e.g., could not run a full 100-epoch hyperparameter sweep).
+- **Time Constraints**: The project was optimized for a 1-day rapid development cycle to demonstrate production readiness and research agility.

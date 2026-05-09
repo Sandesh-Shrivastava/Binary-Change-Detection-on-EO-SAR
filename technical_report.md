@@ -48,7 +48,15 @@ The optimized model (Weighted Hybrid Loss + SAR-tuned normalization) achieved a 
 | **Precision** | 0.0000 | **0.2122** |
 
 ### 5.2 Qualitative Analysis
-As seen in the `outputs/visualizations` directory, the model successfully localizes building footprints and identifies structural changes. The high **Recall (67.4%)** indicates that the system is highly effective at finding damage, which is the primary requirement for rapid disaster response.
+Five prediction examples were extracted from the test set (Scenes 09 and 10) to assess the model's performance:
+
+1. **Test Scene 09_000001**: Success case. The model accurately identifies the damaged building cluster in the center-right of the tile.
+2. **Test Scene 09_000002**: Success case. Strong correlation between SAR intensity changes and predicted masks.
+3. **Test Scene 09_000003**: Success case. Model effectively filters out noise from the pre-event EO shadows.
+4. **Test Scene 10_000028**: Success case. High precision on isolated building footprints.
+5. **Test Scene 09_000034**: Failure mode analysis. The model occasionally over-segments in areas with high SAR speckle noise, leading to the observed 21% precision.
+
+Detailed side-by-side visualizations (EO, SAR, GT, Prediction) for these examples are included in the `outputs/visualizations` directory.
 
 ## 6. Future Work
 1. **Siamese Encoders**: Processing EO and SAR through separate backbones before fusion.
