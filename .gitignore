@@ -1,0 +1,21 @@
+# Data
+Data/
+*.tif
+*.npy
+
+# Training artifacts
+checkpoints/*.pth
+!checkpoints/best_model.pth
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# OS
+.DS_Store
+
+# Logs
+*.log

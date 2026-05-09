@@ -1,0 +1,12 @@
+torch>=2.0.0
+torchvision
+numpy
+rasterio
+albumentations
+segmentation-models-pytorch
+matplotlib
+pyyaml
+tqdm
+scikit-learn
+opencv-python
+tensorboard

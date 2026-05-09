@@ -1,0 +1,25 @@
+# GalaxEye EO-SAR Change Detection Config
+
+data:
+  train_dir: "Data/train"
+  val_dir: "Data/val"
+  test_dir: "Data/test"
+  batch_size: 8
+  img_size: 512
+  val_scenes: ["scene_07"] # Scene-aware split
+
+model:
+  architecture: "unet"
+  encoder: "resnet34"
+  in_channels: 4
+  num_classes: 1
+
+training:
+  epochs: 50
+  lr: 0.0001
+  loss_type: "hybrid"
+  device: "mps" # Use 'mps' for Apple Silicon, 'cuda' for NVIDIA, 'cpu' otherwise
+
+output:
+  checkpoint_dir: "checkpoints"
+  results_dir: "outputs"
