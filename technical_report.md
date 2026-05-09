@@ -1,70 +1,64 @@
 # 📑 Technical Report: Binary Change Detection on EO-SAR Image Pairs
 
-**Author:** Sandesh Shrivastava
-**Date:** May 9, 2026
+**Author:** Sandesh Shrivastava  
+**Date:** May 9, 2026  
 **Topic:** Cross-modal Change Detection for Disaster Analysis
 
 ## 1. Abstract
-This report details the implementation of a robust, production-quality binary change detection system designed to identify building damage from co-registered Electro-Optical (EO) and Synthetic Aperture Radar (SAR) imagery. By employing an early-fusion U-Net architecture and a hybrid loss function, the system effectively addresses the challenges of cross-modal feature correspondence and extreme class imbalance.
+This project presents a production-quality binary change detection system for Identifying building damage using co-registered Electro-Optical (EO) and Synthetic Aperture Radar (SAR) imagery. We employ an **Early Fusion U-Net** architecture with a **ResNet34** backbone. By implementing a **Weighted Hybrid Loss (BCE + Dice)** and custom SAR normalization, we successfully addressed the extreme class imbalance (6:1) and cross-modal domain gaps. The final model achieved a **Test Recall of 67.43%** and an **IoU of 19.25%**, demonstrating high sensitivity to structural changes in disaster-affected areas.
 
-## 2. Introduction
-Change detection in remote sensing is critical for disaster response. While EO imagery provides high-resolution semantic context, it is limited by weather and lighting. SAR imagery, being an active sensor, can penetrate clouds and smoke but is characterized by speckle noise and different backscatter physics. Fusing these modalities allows for more resilient damage assessment.
+## 2. Literature Survey
+Change detection in remote sensing has traditionally relied on optical (EO) sensors. However, disaster scenarios often involve cloud cover or smoke, making EO data unreliable. Literature suggests that **Synthetic Aperture Radar (SAR)**, which is weather-independent, provides critical backscatter information that correlates with structural stability (Hafner et al., 2021). 
+
+Prior methods often used **Post-Classification Comparison (PCC)**, which suffers from error propagation. Modern deep learning approaches favor **U-Net** architectures due to their skip connections that preserve spatial details (Ronneberger et al., 2015). Recent work in **EO-SAR Fusion** indicates that **Early Fusion** (stacking modalities at the input) is more effective for low-level feature correspondence than Late Fusion. This project addresses the gap in rapid disaster response by prioritizing high Recall (Sensitivity) to ensure minimal missed damage during emergency assessments.
 
 ## 3. Methodology
 
-### 3.1 Data Fusion Strategy
-An **Early Fusion** approach was adopted. Pre-event EO (RGB) and post-event SAR (Amplitude) were stacked into a 4-channel input tensor. This allows the encoder to learn low-level cross-modal features (e.g., how the optical texture of a building roof relates to its radar backscatter signature).
+### 3.1 Architecture & Fusion
+We utilized a **U-Net** architecture with a **ResNet34** encoder pretrained on ImageNet. An **Early Fusion** strategy was implemented by stacking 3-channel pre-event EO and 1-channel post-event SAR into a 4-channel input tensor. This rationale allows the network to learn the direct relationship between optical texture and radar backscatter change in a single pass.
 
-### 3.2 Model Architecture
-The core model is a **U-Net** with a **ResNet34** encoder pretrained on ImageNet. 
-- **Encoder**: Extracts hierarchical features from the 4-channel input.
-- **Decoder**: Up-samples features to the original 1024x1024 resolution.
-- **Skip Connections**: Preserve high-frequency spatial details necessary for precise building boundary detection.
+### 3.2 Handling Class Imbalance
+The dataset is highly imbalanced (~94% background). 
+- **Initial Attempt**: A standard BCE + Dice loss led to the model predicting "No Change" for all pixels (0% IoU).
+- **Final Strategy**: We implemented a **Weighted Hybrid Loss**. By applying a $pos\_weight=6.0$ to the Binary Cross Entropy (BCE) component, we forced the model to prioritize the minority "Change" class. This was combined with **Dice Loss** to ensure regional overlap optimization.
 
-### 3.3 Loss Function
-To handle the class imbalance (approx. 6:1 ratio of no-change to change), a **Hybrid Weighted Loss** was used:
-- **BCE (Binary Cross Entropy)**: Weighted with $pos\_weight=6.0$ to prioritize the sparse "Change" class.
-- **Dice Loss**: Directly optimizes the intersection-over-union, making the model robust to region overlap issues.
+### 3.3 Training Strategy
+- **Optimizer**: AdamW ($10^{-4}$ learning rate) for stable weight decay.
+- **Augmentations**: Spatial transforms (Rotations, Flips) to ensure rotation invariance of building footprints.
+- **Normalization**: Custom stats for SAR (mean=0.15, std=0.15) were crucial to prevent the radar channel from being "washed out" by ImageNet-standard EO normalization.
 
-### 3.4 Experimental Setup
-- **Optimizer**: AdamW with a learning rate of $10^{-4}$.
-- **Batch Size**: 8 samples per batch.
-- **Augmentations**: Horizontal/Vertical flips, Random Rotate 90, and Random Brightness/Contrast to improve generalization.
-- **Hardware**: Metal Performance Shaders (MPS) on Apple Silicon.
+## 4. Results
 
-## 4. Literature Survey
-The use of U-Net architectures has become a standard in remote sensing change detection due to their ability to capture multi-scale features through an encoder-decoder structure with skip connections. Research in EO-SAR fusion (e.g., *Hafner et al.*) highlights that early fusion of optical and radar modalities allows the network to learn complex backscatter-reflectance relationships that are vital for disaster assessment where cloud cover often obscures optical sensors.
+### 4.1 Quantitative Metrics
+The model was evaluated on both the validation (Scene 07) and the held-out test split (Scenes 09, 10).
 
-## 5. Results & Discussion
+| Split | IoU | F1-Score | Recall | Precision |
+|---|---|---|---|---|
+| **Validation** | 22.62% | 36.89% | 61.40% | 26.35% |
+| **Test** | **19.25%** | **32.28%** | **67.43%** | **21.22%** |
 
-### 5.1 Quantitative Metrics
-The optimized model (Weighted Hybrid Loss + SAR-tuned normalization) achieved a significant performance breakthrough on the held-out test set compared to the initial baseline.
-
-| Metric | Baseline (Untrained/Imbalanced) | **Final Optimized Model** |
+#### Confusion Matrix (Test Set)
+| | Predicted: No Change | Predicted: Change |
 |---|---|---|
-| **Test IoU** | 0.0007 | **0.1925** |
-| **Test F1-Score** | 0.0014 | **0.3228** |
-| **Recall (Sensitivity)**| 0.0000 | **0.6743** |
-| **Precision** | 0.0000 | **0.2122** |
+| **Actual: No Change** | 18,286,989 (TN) | 1,356,345 (FP) |
+| **Actual: Change** | 176,463 (FN) | 365,291 (TP) |
 
-### 5.2 Qualitative Analysis
-Five prediction examples were extracted from the test set (Scenes 09 and 10) to assess the model's performance:
+### 4.2 Qualitative Visualizations
+Five prediction examples from the test set illustrate the model's behavior:
+1.  **Success (Scene 09_000001)**: Accurate localization of a dense cluster of damaged buildings.
+2.  **Success (Scene 09_000002)**: High correlation between SAR intensity spikes and damage prediction.
+3.  **Success (Scene 10_000028)**: Precise detection of isolated destroyed structures.
+4.  **Success (Scene 09_000003)**: Robustness against EO shadows and lighting variations.
+5.  **Failure (Scene 09_000034)**: Over-segmentation in a high-noise SAR area, leading to false positives (FP).
 
-1. **Test Scene 09_000001**: Success case. The model accurately identifies the damaged building cluster in the center-right of the tile.
-2. **Test Scene 09_000002**: Success case. Strong correlation between SAR intensity changes and predicted masks.
-3. **Test Scene 09_000003**: Success case. Model effectively filters out noise from the pre-event EO shadows.
-4. **Test Scene 10_000028**: Success case. High precision on isolated building footprints.
-5. **Test Scene 09_000034**: Failure mode analysis. The model occasionally over-segments in areas with high SAR speckle noise, leading to the observed 21% precision.
+## 5. Future Work
+As an intern at GalaxEye, my next steps would focus on:
+1.  **Siamese Multi-Modal Encoders**: Instead of Early Fusion, I would explore separate encoders for EO and SAR to extract domain-specific features before fusion. This would likely reduce the false positive rate.
+2.  **Temporal SAR Ensembling**: Using multiple post-event SAR passes to perform speckle filtering and improve the signal-to-noise ratio.
+3.  **Attention Mechanisms**: Implementing **Spatial and Channel Attention** (e.g., Attention U-Net) to help the model focus on building footprints and ignore irrelevant changes like vegetation or moisture levels.
 
-Detailed side-by-side visualizations (EO, SAR, GT, Prediction) for these examples are included in the `outputs/visualizations` directory.
-
-## 6. Future Work
-1. **Siamese Encoders**: Processing EO and SAR through separate backbones before fusion.
-2. **Speckle Filtering**: Preprocessing SAR data to reduce noise.
-3. **Temporal Ensembling**: Using multiple post-event SAR passes to improve confidence.
-
-## 7. Conclusion
-This project successfully demonstrates the feasibility of cross-modal change detection for building damage assessment. By combining EO and SAR data, we achieve a more resilient monitoring system that is less dependent on favorable atmospheric conditions.
+## 6. Conclusion
+This project successfully demonstrates that fusing EO and SAR data significantly enhances change detection resilience. The core limitation of the current approach is the **Precision (21.2%)**, caused by SAR speckle noise. However, the high **Recall (67.4%)** ensures the system is a valuable tool for rapid disaster screening where missing a damaged building is more critical than a false alarm.
 
 ---
-*Developed as part of the GalaxEye AI Research Internship Technical Assignment.*
+*Time and Resource Log available in the project ZIP.*
